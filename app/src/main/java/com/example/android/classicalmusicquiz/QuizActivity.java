@@ -21,11 +21,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -66,6 +69,9 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     private SimpleExoPlayerView mPlayerView;
     private SimpleExoPlayer mExoPlayer;
 
+    private MediaSessionCompat mMediaSession;
+    private PlaybackStateCompat.Builder mPlaybackStateBuilder;
+
     private ExoPlayer.EventListener listener = new ExoPlayer.EventListener() {
         @Override
         public void onTimelineChanged(Timeline timeline, Object manifest) {
@@ -85,10 +91,19 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             if(playbackState == ExoPlayer.STATE_READY){
-                if(playWhenReady)
-                    Log.d(TAG, "Media Player's playing");
-                else
-                    Log.d(TAG, "Media Player's paused");
+                if(playWhenReady) {
+                    mPlaybackStateBuilder.setState(
+                            PlaybackStateCompat.STATE_PLAYING,
+                            mExoPlayer.getCurrentPosition(),
+                            1f);
+                }else {
+                    mPlaybackStateBuilder.setState(
+                            PlaybackStateCompat.STATE_PAUSED,
+                            mExoPlayer.getCurrentPosition(),
+                            1f);
+                }
+
+                mMediaSession.setPlaybackState(mPlaybackStateBuilder.build());
             }
         }
 
@@ -150,8 +165,25 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(this, "Sample not found!", Toast.LENGTH_SHORT).show();
             return;
         }
-
+        initializeMediaSession();
         initializePlayer(Uri.parse(sample.getUri()));
+    }
+
+    private void initializeMediaSession() {
+        mMediaSession = new MediaSessionCompat(this, TAG);
+        mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mMediaSession.setMediaButtonReceiver(null);
+
+        mPlaybackStateBuilder = new PlaybackStateCompat.Builder()
+                .setActions(
+                        PlaybackStateCompat.ACTION_PLAY |
+                                PlaybackStateCompat.ACTION_PAUSE |
+                                PlaybackStateCompat.ACTION_PLAY_PAUSE |
+                                PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                );
+        mMediaSession.setPlaybackState(mPlaybackStateBuilder.build());
+        mMediaSession.setCallback(new QuizMediaSessionCallback());
+        mMediaSession.setActive(true);
     }
 
     // In initializePayer
@@ -288,5 +320,23 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         mExoPlayer.stop();
+        mMediaSession.setActive(false);
+    }
+
+    private class QuizMediaSessionCallback extends MediaSessionCompat.Callback {
+        @Override
+        public void onPlay() {
+            mExoPlayer.
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+        }
+
+        @Override
+        public void onSkipToPrevious() {
+            super.onSkipToPrevious();
+        }
     }
 }
