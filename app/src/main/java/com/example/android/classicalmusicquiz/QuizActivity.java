@@ -17,6 +17,7 @@
 package com.example.android.classicalmusicquiz;
 
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -28,9 +29,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -332,8 +335,26 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         int icon;
 
         if(state.getState() == PlaybackState.STATE_PAUSED){
-
+            play_pause = getString(R.string.play);
+            icon = R.drawable.exo_controls_play;
+        }else{
+            play_pause = getString(R.string.pause);
+            icon = R.drawable.exo_controls_pause;
         }
+
+        NotificationCompat.Action playPauseAction = new android.support.v4.app.NotificationCompat.Action(icon, play_pause,
+                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY_PAUSE));
+
+        NotificationCompat.Action restartAction = new android.support.v4.app.NotificationCompat.Action(R.drawable.exo_controls_previous, getString(R.string.restart),
+                MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, QuizActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder notifBuilder = new NotificationCompat.Builder(this)
+                .addAction(restartAction)
+                .addAction(playPauseAction)
+                .setContentIntent(contentIntent);
     }
 
     private class QuizMediaSessionCallback extends MediaSessionCompat.Callback {
