@@ -34,7 +34,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -95,13 +94,13 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-            if(playbackState == ExoPlayer.STATE_READY){
-                if(playWhenReady) {
+            if (playbackState == ExoPlayer.STATE_READY) {
+                if (playWhenReady) {
                     mPlaybackStateBuilder.setState(
                             PlaybackStateCompat.STATE_PLAYING,
                             mExoPlayer.getCurrentPosition(),
                             1f);
-                }else {
+                } else {
                     mPlaybackStateBuilder.setState(
                             PlaybackStateCompat.STATE_PAUSED,
                             mExoPlayer.getCurrentPosition(),
@@ -166,7 +165,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         // TODO (4): Create a Sample object using the Sample.getSampleByID() method and passing in mAnswerSampleID;
         // TODO (5): Create a method called initializePlayer() that takes a Uri as an argument and call it here, passing in the Sample URI.
         Sample sample = Sample.getSampleByID(this, mAnswerSampleID);
-        if(sample == null){
+        if (sample == null) {
             Toast.makeText(this, "Sample not found!", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -329,15 +328,15 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         mMediaSession.setActive(false);
     }
 
-    private void showNotification(PlaybackStateCompat state){
+    private void showNotification(PlaybackStateCompat state) {
 
         String play_pause;
         int icon;
 
-        if(state.getState() == PlaybackState.STATE_PAUSED){
+        if (state.getState() == PlaybackState.STATE_PAUSED) {
             play_pause = getString(R.string.play);
             icon = R.drawable.exo_controls_play;
-        }else{
+        } else {
             play_pause = getString(R.string.pause);
             icon = R.drawable.exo_controls_pause;
         }
@@ -352,9 +351,17 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
                 new Intent(this, QuizActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notifBuilder = new NotificationCompat.Builder(this)
+                .setContentText(getString(R.string.notification_text))
+                .setSmallIcon(R.drawable.i)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .addAction(restartAction)
                 .addAction(playPauseAction)
-                .setContentIntent(contentIntent);
+                .setContentIntent(contentIntent)
+                .setStyle(new NotificationCompat.MediaStyle()
+                        .setShowActionsInCompactView(0, 1)
+                        .setMediaSession(mMediaSession.getSessionToken()));
+
+        mNotifManager.notify(0, notifBuilder.build());
     }
 
     private class QuizMediaSessionCallback extends MediaSessionCompat.Callback {
@@ -370,7 +377,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onSkipToPrevious() {
-           mExoPlayer.seekTo(0);
+            mExoPlayer.seekTo(0);
         }
     }
 }
