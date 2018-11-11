@@ -27,16 +27,23 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
@@ -47,6 +54,8 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int CORRECT_ANSWER_DELAY_MILLIS = 1000;
     private static final String REMAINING_SONGS_KEY = "remaining_songs";
+    private static final String TAG = QuizActivity.class.getSimpleName();
+
     private int[] mButtonIDs = {R.id.buttonA, R.id.buttonB, R.id.buttonC, R.id.buttonD};
     private ArrayList<Integer> mRemainingSampleIDs;
     private ArrayList<Integer> mQuestionSampleIDs;
@@ -57,6 +66,42 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     private SimpleExoPlayerView mPlayerView;
     private SimpleExoPlayer mExoPlayer;
 
+    private ExoPlayer.EventListener listener = new ExoPlayer.EventListener() {
+        @Override
+        public void onTimelineChanged(Timeline timeline, Object manifest) {
+
+        }
+
+        @Override
+        public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+
+        }
+
+        @Override
+        public void onLoadingChanged(boolean isLoading) {
+
+        }
+
+        @Override
+        public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+            if(playbackState == ExoPlayer.STATE_READY){
+                if(playWhenReady)
+                    Log.d(TAG, "Media Player's playing");
+                else
+                    Log.d(TAG, "Media Player's paused");
+            }
+        }
+
+        @Override
+        public void onPlayerError(ExoPlaybackException error) {
+
+        }
+
+        @Override
+        public void onPositionDiscontinuity() {
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +146,11 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         // TODO (4): Create a Sample object using the Sample.getSampleByID() method and passing in mAnswerSampleID;
         // TODO (5): Create a method called initializePlayer() that takes a Uri as an argument and call it here, passing in the Sample URI.
         Sample sample = Sample.getSampleByID(this, mAnswerSampleID);
-        assert sample != null;
+        if(sample == null){
+            Toast.makeText(this, "Sample not found!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         initializePlayer(Uri.parse(sample.getUri()));
     }
 
@@ -119,7 +168,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
         MediaSource mediaSource = new ExtractorMediaSource(
                 mediaUri, new DefaultDataSourceFactory(this, Util.getUserAgent(this, "ClassicalMusicQuiz")),
-                new DefaultExtractorsFactory(), null, null);
+                new DefaultExtractorsFactory(), null, listener);
         mExoPlayer.prepare(mediaSource);
         mExoPlayer.setPlayWhenReady(true);
     }
