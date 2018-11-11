@@ -168,8 +168,9 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
         MediaSource mediaSource = new ExtractorMediaSource(
                 mediaUri, new DefaultDataSourceFactory(this, Util.getUserAgent(this, "ClassicalMusicQuiz")),
-                new DefaultExtractorsFactory(), null, listener);
+                new DefaultExtractorsFactory(), null, null);
         mExoPlayer.prepare(mediaSource);
+        mExoPlayer.addListener(listener);
         mExoPlayer.setPlayWhenReady(true);
     }
 
