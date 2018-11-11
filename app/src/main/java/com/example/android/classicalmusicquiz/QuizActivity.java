@@ -16,6 +16,7 @@
 
 package com.example.android.classicalmusicquiz;
 
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -71,6 +72,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
 
     private MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mPlaybackStateBuilder;
+    private NotificationManager mNotifManager;
 
     private ExoPlayer.EventListener listener = new ExoPlayer.EventListener() {
         @Override
@@ -319,24 +321,35 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mNotifManager.cancelAll();
         mExoPlayer.stop();
         mMediaSession.setActive(false);
+    }
+
+    private void showNotification(PlaybackStateCompat state){
+
+        String play_pause;
+        int icon;
+
+        if(state.getState() == PlaybackState.STATE_PAUSED){
+
+        }
     }
 
     private class QuizMediaSessionCallback extends MediaSessionCompat.Callback {
         @Override
         public void onPlay() {
-            mExoPlayer.
+            mExoPlayer.setPlayWhenReady(true);
         }
 
         @Override
         public void onPause() {
-            super.onPause();
+            mExoPlayer.setPlayWhenReady(false);
         }
 
         @Override
         public void onSkipToPrevious() {
-            super.onSkipToPrevious();
+           mExoPlayer.seekTo(0);
         }
     }
 }
