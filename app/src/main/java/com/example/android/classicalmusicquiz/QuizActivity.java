@@ -18,6 +18,7 @@ package com.example.android.classicalmusicquiz;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -72,7 +73,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
     private SimpleExoPlayerView mPlayerView;
     private SimpleExoPlayer mExoPlayer;
 
-    private MediaSessionCompat mMediaSession;
+    private static MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mPlaybackStateBuilder;
     private NotificationManager mNotifManager;
 
@@ -108,6 +109,7 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 mMediaSession.setPlaybackState(mPlaybackStateBuilder.build());
+                showNotification(mPlaybackStateBuilder.build());
             }
         }
 
@@ -350,9 +352,9 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, QuizActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder notifBuilder = new NotificationCompat.Builder(this)
+        android.support.v4.app.NotificationCompat.Builder notifBuilder = new NotificationCompat.Builder(this)
                 .setContentText(getString(R.string.notification_text))
-                .setSmallIcon(R.drawable.i)
+                .setSmallIcon(R.drawable.ic_music_note)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .addAction(restartAction)
                 .addAction(playPauseAction)
@@ -361,7 +363,15 @@ public class QuizActivity extends AppCompatActivity implements View.OnClickListe
                         .setShowActionsInCompactView(0, 1)
                         .setMediaSession(mMediaSession.getSessionToken()));
 
+        mNotifManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mNotifManager.notify(0, notifBuilder.build());
+    }
+
+    public static class QuizMediaButtonReceiver extends MediaButtonReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            MediaButtonReceiver.handleIntent(mMediaSession, intent);
+        }
     }
 
     private class QuizMediaSessionCallback extends MediaSessionCompat.Callback {
